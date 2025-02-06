@@ -1,10 +1,14 @@
 """Module for serializing the models so that they can be exposed to the API.
+They only validate the data. Responses are created in the views because they
+handle HTTP requests and response cycles.
 """
 
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import Order, Product
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -120,3 +124,53 @@ class LogoutSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
             token.blacklist()
         except TokenError:  # Catch only TokenError
             self.fail("bad_token")
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    """Serializer for the Product model."""
+
+    class Meta:
+        """Meta class to define the model and fields to include in the serializer."""
+
+        model = Product
+        fields = ["id", "name", "price"]
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    """Serializer for the Order model."""
+
+    user = serializers.StringRelatedField(read_only=True)  # Show username instead of ID
+    product = ProductSerializer(read_only=True)  # Nested product details
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),  # pylint: disable=no-member
+        source="product",  # Map product_id to the product field in the model
+        write_only=True,  # pylint: disable=no-member
+    )
+
+    class Meta:
+        """Meta class to define the model and fields to include in the serializer."""
+
+        model = Order
+        fields = [
+            "id",
+            "user",
+            "product",
+            "product_id",
+            "quantity",
+            "total_price",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["total_price", "created_at", "updated_at"]
+
+    def validate_quantity(self, value):
+        """Ensure quantity is greater than 0."""
+        if value <= 0:
+            raise serializers.ValidationError("Quantity must be greater than 0.")
+        return value
+
+    def create(self, validated_data):
+        """Set the user automatically when creating an order."""
+        validated_data["user"] = self.context["request"].user
+        return super().create(validated_data)
