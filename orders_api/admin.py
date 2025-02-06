@@ -1,3 +1,9 @@
+"""Module to register the models in admin panel
+"""
+
 from django.contrib import admin
 
-# Register your models here.
+from .models import Order, Product
+
+admin.site.register(Product)
+admin.site.register(Order)
