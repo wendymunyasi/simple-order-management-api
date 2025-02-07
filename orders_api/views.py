@@ -94,6 +94,44 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
 
+    def create(self, request, *args, **kwargs):
+        """Override create to include a custom success message and check for dups."""
+
+        # Extract the name and price from the request data
+        name = request.data.get("name")
+        price = request.data.get("price")
+
+        # Check if a product with the same name (case-insensitive) and price already exists
+        if Product.objects.filter(  # pylint: disable=no-member
+            name__iexact=name, price=price
+        ).exists():
+            return Response(
+                {"message": "Hold up, product already exists in the system."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Initialize the serializer with the incoming request data
+        serializer = self.get_serializer(data=request.data)
+
+        # Validate the incoming data using the serializer
+        serializer.is_valid(raise_exception=True)
+
+        # Save the validated data to db
+        self.perform_create(serializer)
+
+        # Generate any additional headers for the response
+        headers = self.get_success_headers(serializer.data)
+
+        # Return a custom response with message
+        return Response(
+            {
+                "message": "Product successfully created, well done, champ!",
+                "data": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
+
 
 class OrderViewSet(viewsets.ModelViewSet):
     """Viewset for managing orders."""
