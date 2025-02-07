@@ -236,6 +236,12 @@ class OrderViewSet(viewsets.ModelViewSet):
         if ordering:
             orders = orders.order_by(ordering)
 
-        # Serialize the filtered orders
+        # Apply pagination
+        page = self.paginate_queryset(orders)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # Serialize the filtered orders and if no pagination is applied, return the full list
         serializer = self.get_serializer(orders, many=True)
         return Response(serializer.data)
