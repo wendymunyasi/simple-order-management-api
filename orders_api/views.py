@@ -3,6 +3,7 @@
 
 from django.contrib.auth import authenticate
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -206,3 +207,35 @@ class OrderViewSet(viewsets.ModelViewSet):
             },
             status=response.status_code,
         )
+
+    @action(detail=False, methods=["get"], url_path="search")
+    def filter_orders(self, request):
+        """
+        Custom endpoint to filter orders based on query parameters.
+
+        Query Parameters:
+            - status (Optional): Filter orders by status (e.g., 'pending', 'completed').
+            - product_name (Optional): Filter orders by product name.
+            - ordering (Optional): Order by fields (e.g., 'created_at', '-updated_at').
+
+        Returns:
+            list: Filtered orders based on the provided query parameters.
+        """
+        status_param = request.query_params.get("status", None)
+        product_name = request.query_params.get("product_name", None)
+        ordering = request.query_params.get("ordering", None)
+
+        # Start with the base queryset filtered by the logged-in user
+        orders = self.get_queryset()
+
+        # Apply filters based on query parameters
+        if status_param:
+            orders = orders.filter(status=status_param)
+        if product_name:
+            orders = orders.filter(product__name__icontains=product_name)
+        if ordering:
+            orders = orders.order_by(ordering)
+
+        # Serialize the filtered orders
+        serializer = self.get_serializer(orders, many=True)
+        return Response(serializer.data)
