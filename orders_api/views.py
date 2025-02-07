@@ -2,13 +2,21 @@
 """
 
 from django.contrib.auth import authenticate
-from rest_framework import status
+from rest_framework import status, viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .serializers import LoginSerializer, LogoutSerializer, RegisterSerializer
+from .models import Order, Product
+from .serializers import (
+    LoginSerializer,
+    LogoutSerializer,
+    OrderSerializer,
+    ProductSerializer,
+    RegisterSerializer,
+)
 
 
 class RegisterView(APIView):
@@ -77,3 +85,86 @@ class LogoutView(APIView):
                 status=status.HTTP_205_RESET_CONTENT,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductViewSet(viewsets.ModelViewSet):
+    """Viewset for managing products."""
+
+    queryset = Product.objects.all()  # pylint: disable=no-member
+    serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    """Viewset for managing orders."""
+
+    queryset = Order.objects.all().order_by("-updated_at")  # pylint: disable=no-member
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Filter orders by the logged-in user."""
+        return self.queryset.filter(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        """Override create to include a custom success message."""
+
+        # Initialize the serializer with the incoming request data
+        serializer = self.get_serializer(data=request.data)
+
+        # Validate the incoming data using the serializer
+        serializer.is_valid(raise_exception=True)
+
+        # Save the validated data to db
+        self.perform_create(serializer)
+
+        # Generate any additional headers for the response
+        headers = self.get_success_headers(serializer.data)
+
+        # Return a custom response with message
+        return Response(
+            {
+                "message": "Order successfully created, well done, champ!",
+                "data": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
+
+    def destroy(self, request, *args, **kwargs):
+        """Soft delete an order by marking it as cancelled.
+        Overrides the destroy method in the OrderViewSet."""
+
+        # Retrieve the order instance that the user is requesting
+        order = self.get_object()
+
+        order.status = "cancelled"  # Cancel the order
+        order.save()  # Save the order and return a response
+        return Response(
+            {"message": "Order cancelled successfully."}, status=status.HTTP_200_OK
+        )
+
+    def update(self, request, *args, **kwargs):
+        """Allow updates only if the order status is 'pending'.
+        Overrides the update method in the OrderViewSet.
+        """
+        order = self.get_object()
+
+        # Check if the current status is 'pending'
+        if order.status != "pending":
+            return Response(
+                {"error": "You can only update orders with a status of 'pending'."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Proceed with the update if the status is 'pending'
+        response = super().update(request, *args, **kwargs)
+
+        # Add a custom success message to the response
+        return Response(
+            {
+                "message": "Order updated successfully.",
+                "data": response.data,  # Include the updated order data
+            },
+            status=response.status_code,
+        )
