@@ -20,7 +20,7 @@ class Product(models.Model):
 
     def __str__(self):
         """Returns the string representation of the product."""
-        return str(self.name)
+        return f"{self.id} - Name - {self.name}"  # pylint: disable=no-member
 
 
 class Order(models.Model):
