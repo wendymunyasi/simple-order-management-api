@@ -4,7 +4,23 @@ This is a web api that allows users to make orders in the system. All CRUD opera
 
 ## Documentation
 
-- To be included later.
+- The API documentation is available via Swagger. Swagger provides an interactive interface to explore and test the API endpoints.
+
+### Accessing Swagger Documentation
+
+1. **Local Development**:
+   Once the server is running, you can access the Swagger documentation at:
+   [http://127.0.0.1:8000/swagger/](http://127.0.0.1:8000/swagger/)
+
+2. **Production Environment**:
+   If deployed, replace `127.0.0.1:8000` with your production server URL.
+
+3. **Swagger UI Features**:
+   - View all available API endpoints.
+   - Test API requests directly from the browser.
+   - Explore request/response formats and example payloads.
+
+---
 
 ### Prerequisites and Installing
 
