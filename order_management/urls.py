@@ -17,8 +17,33 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
+from rest_framework.authentication import TokenAuthentication
+
+schema_view = get_schema_view(  # pylint: disable=invalid-name
+    openapi.Info(
+        title="Order Management API",
+        default_version="v1",
+        description="API documentation for Order Management",
+        contact=openapi.Contact(email="wendymunyasi@gmail.com"),
+        license=openapi.License(name="Apache License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+    authentication_classes=(TokenAuthentication,),
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include("orders_api.urls")),
+    path(
+        "swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",  # Swagger UI
+    ),
+    path(
+        "redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
+    ),  # Redoc UI
 ]

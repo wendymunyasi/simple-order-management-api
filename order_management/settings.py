@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",  # for token authentication, although not required to be here
     "rest_framework_simplejwt.token_blacklist",  # for blacklisted tokens
     "orders_api",
+    "drf_yasg",
 ]
 
 MIDDLEWARE = [
@@ -147,4 +148,16 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
+}
+
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Enter your Bearer token in the format: Bearer <your_token",
+        },
+    },
+    "USE_SESSION_AUTH": False,  # Disable session-based authentication
 }

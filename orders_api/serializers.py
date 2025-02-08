@@ -23,6 +23,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ["username", "password", "email"]
         extra_kwargs = {"password": {"write_only": True}}
 
+    class SwaggerExamples:  # pylint: disable=too-few-public-methods
+        """Swagger examples for the RegisterSerializer."""
+
+        example = {
+            "username": "tevin",
+            "password": "password",
+            "email": "9WYnF@example.com",
+        }
+
     def validate_email(self, value):
         """
         Validates the email field to ensure uniqueness.
@@ -70,6 +79,14 @@ class LoginSerializer(serializers.Serializer):  # pylint: disable=abstract-metho
 
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
+
+    class SwaggerExamples:  # pylint: disable=too-few-public-methods
+        """Swagger examples for the LoginSerializer."""
+
+        example = {
+            "username": "tevin",
+            "password": "password",
+        }
 
 
 class LogoutSerializer(serializers.Serializer):  # pylint: disable=abstract-method
@@ -135,12 +152,19 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ["id", "name", "price"]
 
+    class SwaggerExamples:
+        """Swagger examples for the ProductSerializer."""
 
-class OrderSerializer(serializers.ModelSerializer):
-    """Serializer for the Order model."""
+        example = {
+            "id": 1,
+            "name": "Lotion Eos Product",
+            "price": 100,
+        }
 
-    user = serializers.StringRelatedField(read_only=True)  # Show username instead of ID
-    product = ProductSerializer(read_only=True)  # Nested product details
+
+class OrderRequestSerializer(serializers.ModelSerializer):
+    """Serializer for for returning order details (response body)."""
+
     product_id = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.all(),  # pylint: disable=no-member
         source="product",  # Map product_id to the product field in the model
@@ -152,17 +176,17 @@ class OrderSerializer(serializers.ModelSerializer):
 
         model = Order
         fields = [
-            "id",
-            "user",
-            "product",
             "product_id",
             "quantity",
-            "total_price",
-            "status",
-            "created_at",
-            "updated_at",
         ]
-        read_only_fields = ["total_price", "created_at", "updated_at"]
+
+    class SwaggerExamples:
+        """Swagger examples for the OrderRequestSerializer."""
+
+        example = {
+            "product_id": 1,
+            "quantity": 1,
+        }
 
     def validate_quantity(self, value):
         """Ensure quantity is greater than 0."""
@@ -174,3 +198,44 @@ class OrderSerializer(serializers.ModelSerializer):
         """Set the user automatically when creating an order."""
         validated_data["user"] = self.context["request"].user
         return super().create(validated_data)
+
+
+class OrderResponseSerializer(serializers.ModelSerializer):
+    """Serializer for returning order details (response body)."""
+
+    user = serializers.StringRelatedField(read_only=True)  # Show username instead of ID
+    product = ProductSerializer(read_only=True)  # Nested product details
+
+    class Meta:
+        """Meta class to define the model and fields for the response serializer."""
+
+        model = Order
+        fields = [
+            "id",
+            "user",
+            "product",
+            "quantity",
+            "total_price",
+            "status",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = fields  # All fields are read-only in the response
+
+    class SwaggerExamples:
+        """Swagger examples for the OrderResponseSerializer."""
+
+        example = {
+            "id": 1,
+            "user": "John Doe",
+            "product": {
+                "id": 1,
+                "name": "Lotion Eos Product",
+                "price": 100,
+            },
+            "quantity": 1,
+            "total_price": 100,
+            "status": "pending",
+            "created_at": "2021-01-01T00:00:00Z",
+            "updated_at": "2021-01-01T00:00:00Z",
+        }

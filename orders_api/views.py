@@ -2,6 +2,8 @@
 """
 
 from django.contrib.auth import authenticate
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -14,7 +16,8 @@ from .models import Order, Product
 from .serializers import (
     LoginSerializer,
     LogoutSerializer,
-    OrderSerializer,
+    OrderRequestSerializer,
+    OrderResponseSerializer,
     ProductSerializer,
     RegisterSerializer,
 )
@@ -25,6 +28,15 @@ class RegisterView(APIView):
     and ensures that the email is unique.
     """
 
+    @swagger_auto_schema(
+        operation_description="Register a new user.",
+        request_body=RegisterSerializer,
+        responses={
+            201: openapi.Response("User registered successfully."),
+            400: openapi.Response("User or email already registered. Please login."),
+        },
+        tags=["Authentication"],
+    )
     def post(self, request):
         """Handles POST requests to register a new user."""
         serializer = RegisterSerializer(data=request.data)
@@ -45,6 +57,26 @@ class LoginView(TokenObtainPairView):
 
     serializer_class = LoginSerializer
 
+    @swagger_auto_schema(
+        operation_description="Log in a user and retrieve JWT tokens.",
+        request_body=LoginSerializer,
+        responses={
+            200: openapi.Response(
+                "User logged in successfully.",
+                examples={
+                    "application/json": {
+                        "message": "User logged in successfully.",
+                        "tokens": {
+                            "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9 ....",
+                            "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        },
+                    }
+                },
+            ),
+            401: openapi.Response("Invalid credentials."),
+        },
+        tags=["Authentication"],
+    )
     def post(self, request, *args, **kwargs):
         """Handles POST requests to log in a user."""
 
@@ -58,7 +90,7 @@ class LoginView(TokenObtainPairView):
             refresh = RefreshToken.for_user(user)
             return Response(
                 {
-                    "message": "User logged in successfully",  # Success message
+                    "message": "User logged in successfully.",  # Success message
                     "tokens": {  # Nest the tokens inside a "tokens" object
                         "refresh": str(refresh),
                         "access": str(refresh.access_token),
@@ -76,13 +108,22 @@ class LogoutView(APIView):
     """Handles the blacklisting of refresh tokens to ensure that they cannot
     be used to generate new access tokens after logout."""
 
+    @swagger_auto_schema(
+        operation_description="Log out a user.",
+        request_body=LogoutSerializer,
+        responses={
+            205: openapi.Response("User logged out successfully."),
+            400: openapi.Response("Validation errors."),
+        },
+        tags=["Authentication"],
+    )
     def post(self, request):
         """Handles POST requests to log out a user."""
         serializer = LogoutSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(
-                {"message": "Logged out successfully"},
+                {"message": "User logged out successfully."},
                 status=status.HTTP_205_RESET_CONTENT,
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -95,6 +136,27 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Retrieve a list of all products.",
+        responses={200: ProductSerializer(many=True)},
+        tags=["Products"],
+    )
+    def list(self, request, *args, **kwargs):
+        """Retrieve all products."""
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Create a new product.",
+        request_body=ProductSerializer,
+        responses={
+            201: openapi.Response(
+                "Product successfully created, well done, champ!",
+                ProductSerializer,
+            ),
+            400: openapi.Response("Hold up, product already exists in the system."),
+        },
+        tags=["Products"],
+    )
     def create(self, request, *args, **kwargs):
         """Override create to include a custom success message and check for dups."""
 
@@ -138,13 +200,40 @@ class OrderViewSet(viewsets.ModelViewSet):
     """Viewset for managing orders."""
 
     queryset = Order.objects.all().order_by("-updated_at")  # pylint: disable=no-member
-    serializer_class = OrderSerializer
+    # serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        """Return the appropriate serializer class based on the request type."""
+        if self.action in ["create", "update", "partial_update"]:
+            return OrderRequestSerializer
+        return OrderResponseSerializer
 
     def get_queryset(self):
         """Filter orders by the logged-in user."""
         return self.queryset.filter(user=self.request.user)
 
+    @swagger_auto_schema(
+        operation_description="Retrieve a list of all orders for the logged-in user.",
+        responses={200: OrderResponseSerializer(many=True)},
+        tags=["Orders"],
+    )
+    def list(self, request, *args, **kwargs):
+        """Retrieve all orders for the logged-in user."""
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Create a new order.",
+        request_body=OrderRequestSerializer,
+        responses={
+            201: openapi.Response(
+                "Order successfully created, well done, champ!",
+                OrderResponseSerializer,
+            ),
+            400: openapi.Response("Validation errors."),
+        },
+        tags=["Orders"],
+    )
     def create(self, request, *args, **kwargs):
         """Override create to include a custom success message."""
 
@@ -160,6 +249,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Generate any additional headers for the response
         headers = self.get_success_headers(serializer.data)
 
+        # Serialise the created order instance using the response serializer
+        serializer = OrderResponseSerializer(serializer.instance)
+
         # Return a custom response with message
         return Response(
             {
@@ -170,6 +262,16 @@ class OrderViewSet(viewsets.ModelViewSet):
             headers=headers,
         )
 
+    @swagger_auto_schema(
+        operation_description="Cancel an order by marking it as cancelled.",
+        responses={
+            200: openapi.Response(
+                "Order cancelled successfully.",
+                OrderRequestSerializer,
+            ),
+        },
+        tags=["Orders"],
+    )
     def destroy(self, request, *args, **kwargs):
         """Soft delete an order by marking it as cancelled.
         Overrides the destroy method in the OrderViewSet."""
@@ -183,6 +285,20 @@ class OrderViewSet(viewsets.ModelViewSet):
             {"message": "Order cancelled successfully."}, status=status.HTTP_200_OK
         )
 
+    @swagger_auto_schema(
+        operation_description="Update an order if it's status is 'pending'.",
+        request_body=OrderRequestSerializer,
+        responses={
+            200: openapi.Response(
+                "Order updated successfully.",
+                OrderResponseSerializer,
+            ),
+            400: openapi.Response(
+                "You can only update orders with a status of 'pending'."
+            ),
+        },
+        tags=["Orders"],
+    )
     def update(self, request, *args, **kwargs):
         """Allow updates only if the order status is 'pending'.
         Overrides the update method in the OrderViewSet.
@@ -199,15 +315,43 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Proceed with the update if the status is 'pending'
         response = super().update(request, *args, **kwargs)
 
+        # Serialise the updated order instance with the response serializer
+        serializer = OrderResponseSerializer(order)
+
         # Add a custom success message to the response
         return Response(
             {
                 "message": "Order updated successfully.",
-                "data": response.data,  # Include the updated order data
+                "data": serializer.data,  # Include the updated order data
             },
             status=response.status_code,
         )
 
+    @swagger_auto_schema(
+        operation_description="Filter orders based on query parameters.",
+        manual_parameters=[
+            openapi.Parameter(
+                "status",
+                openapi.IN_QUERY,
+                description="Filter orders by status (e.g., 'pending', 'completed').",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "product_name",
+                openapi.IN_QUERY,
+                description="Filter orders by product name.",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "ordering",
+                openapi.IN_QUERY,
+                description="Order by fields (e.g., 'created_at', '-updated_at').",
+                type=openapi.TYPE_STRING,
+            ),
+        ],
+        responses={200: OrderResponseSerializer(many=True)},
+        tags=["Orders"],
+    )
     @action(detail=False, methods=["get"], url_path="search")
     def filter_orders(self, request):
         """
