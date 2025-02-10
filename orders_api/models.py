@@ -19,12 +19,12 @@ class Category(models.Model):
     class Meta:
         """Meta class to define metadata for the model"""
 
-        ordering = ["id"]  # Sort categories by id in ascending order
+        ordering = ["name"]  # Sort categories by id in ascending order
         verbose_name_plural = "Categories"
 
     def __str__(self):
         """Returns the string representation of the product."""
-        return f"{self.id} - Name - {self.name}"  # pylint: disable=no-member
+        return f"{self.name} - Category id - {self.id}"  # pylint: disable=no-member
 
 
 class Product(models.Model):

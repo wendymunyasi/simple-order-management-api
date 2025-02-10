@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Order, Product
+from .models import Category, Order, Product
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -146,11 +146,26 @@ class LogoutSerializer(serializers.Serializer):  # pylint: disable=abstract-meth
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for the Product model."""
 
+    category_name = serializers.CharField(source="category.name", read_only=True)
+
     class Meta:
         """Meta class to define the model and fields to include in the serializer."""
 
         model = Product
-        fields = ["id", "name", "price"]
+        fields = [
+            "id",
+            "name",
+            "cost_price",
+            "price",
+            "quantity",
+            "image_url",
+            "product_url",
+            "reviews",
+            "stars",
+            "is_best_seller",
+            "category",
+            "category_name",
+        ]
 
     class SwaggerExamples:
         """Swagger examples for the ProductSerializer."""
@@ -158,8 +173,34 @@ class ProductSerializer(serializers.ModelSerializer):
         example = {
             "id": 1,
             "name": "Lotion Eos Product",
+            "cost_price": 100,
             "price": 100,
+            "quantity": 1,
+            "image_url": "https://example.com/image.jpg",
+            "product_url": "https://example.com/product",
+            "reviews": 10,
+            "stars": 4.5,
+            "is_best_seller": True,
+            "category": 1,
+            "category_name": "Lotion",
         }
+
+    def __init__(self, *args, **kwargs):
+        """
+        Dynamically modify fields based on the request type.
+        For GET requests, exclude 'cost_price' and 'category'.
+        This 'category' stands for the category.id here. Otherwise the name of the category
+        will still display under 'category_name'.
+        """
+        super().__init__(*args, **kwargs)
+
+        # Check if the context contains the request
+        request = self.context.get("request")
+        if request and request.method == "GET":
+            # Exclude 'cost_price' and 'category' for GET requests
+            excluded_fields = ["cost_price", "category"]
+            for field in excluded_fields:
+                self.fields.pop(field)
 
 
 class OrderRequestSerializer(serializers.ModelSerializer):
@@ -238,4 +279,25 @@ class OrderResponseSerializer(serializers.ModelSerializer):
             "status": "pending",
             "created_at": "2021-01-01T00:00:00Z",
             "updated_at": "2021-01-01T00:00:00Z",
+        }
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    """Serializer for the Category model."""
+
+    class Meta:
+        """Meta class to define the model and fields to include in the serializer."""
+
+        model = Category
+        fields = [
+            "id",
+            "name",
+        ]
+
+    class SwaggerExamples:
+        """Swagger examples for the ProductSerializer."""
+
+        example = {
+            "id": 1,
+            "name": "Lotion",
         }

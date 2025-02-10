@@ -12,8 +12,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Order, Product
+from .models import Category, Order, Product
 from .serializers import (
+    CategorySerializer,
     LoginSerializer,
     LogoutSerializer,
     OrderRequestSerializer,
@@ -136,6 +137,12 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_context(self):
+        """Pass the request to the serializer context."""
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
     @swagger_auto_schema(
         operation_description="Retrieve a list of all products.",
         responses={200: ProductSerializer(many=True)},
@@ -193,6 +200,51 @@ class ProductViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED,
             headers=headers,
+        )
+
+    @swagger_auto_schema(
+        operation_description="Update a product in the system.",
+        request_body=ProductSerializer,
+        responses={
+            200: openapi.Response(
+                "Product updated successfully.",
+                ProductSerializer,
+            ),
+        },
+        tags=["Products"],
+    )
+    def update(self, request, *args, **kwargs):
+        """Override update to return a custom success message with product details."""
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(
+            {
+                "message": "Product updated successfully.",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @swagger_auto_schema(
+        operation_description="Delete a product from the system.",
+        responses={
+            200: openapi.Response(
+                "Product deleted successfully.",
+            ),
+        },
+        tags=["Products"],
+    )
+    def destroy(self, request, *args, **kwargs):
+        """Override destroy to return a custom success message."""
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            {"message": "Product deleted successfully."},
+            status=status.HTTP_200_OK,
         )
 
 
@@ -389,3 +441,119 @@ class OrderViewSet(viewsets.ModelViewSet):
         # Serialize the filtered orders and if no pagination is applied, return the full list
         serializer = self.get_serializer(orders, many=True)
         return Response(serializer.data)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """Viewset for managing products."""
+
+    queryset = Category.objects.all()  # pylint: disable=no-member
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        """Pass the request to the serializer context."""
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a list of all categories.",
+        responses={200: CategorySerializer(many=True)},
+        tags=["Products"],
+    )
+    def list(self, request, *args, **kwargs):
+        """Retrieve all products."""
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Create a new category.",
+        request_body=CategorySerializer,
+        responses={
+            201: openapi.Response(
+                "Category successfully created, well done, champ!",
+                CategorySerializer,
+            ),
+            400: openapi.Response("Hold up, category already exists in the system."),
+        },
+        tags=["Categories"],
+    )
+    def create(self, request, *args, **kwargs):
+        """Override create to include a custom success message and check for dups."""
+
+        # Extract the name and price from the request data
+        name = request.data.get("name")
+
+        # Check if a product with the same name (case-insensitive) and price already exists
+        if Category.objects.filter(  # pylint: disable=no-member
+            name__iexact=name,
+        ).exists():
+            return Response(
+                {"message": "Hold up, category already exists in the system."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Initialize the serializer with the incoming request data
+        serializer = self.get_serializer(data=request.data)
+
+        # Validate the incoming data using the serializer
+        serializer.is_valid(raise_exception=True)
+
+        # Save the validated data to db
+        self.perform_create(serializer)
+
+        # Generate any additional headers for the response
+        headers = self.get_success_headers(serializer.data)
+
+        # Return a custom response with message
+        return Response(
+            {
+                "message": "Category successfully created, well done, champ!",
+                "data": serializer.data,
+            },
+            status=status.HTTP_201_CREATED,
+            headers=headers,
+        )
+
+    @swagger_auto_schema(
+        operation_description="Update a category in the system.",
+        request_body=CategorySerializer,
+        responses={
+            200: openapi.Response(
+                "Category updated successfully.",
+                CategorySerializer,
+            ),
+        },
+        tags=["Categories"],
+    )
+    def update(self, request, *args, **kwargs):
+        """Override update to return a custom success message with category details."""
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(
+            {
+                "message": "Category updated successfully.",
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @swagger_auto_schema(
+        operation_description="Delete a category from the system.",
+        responses={
+            200: openapi.Response(
+                "Product deleted successfully.",
+            ),
+        },
+        tags=["Categories"],
+    )
+    def destroy(self, request, *args, **kwargs):
+        """Override destroy to return a custom success message."""
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            {"message": "Category deleted successfully."},
+            status=status.HTTP_200_OK,
+        )

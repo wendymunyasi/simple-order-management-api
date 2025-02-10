@@ -18,12 +18,20 @@ Including another URLconf
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import LoginView, LogoutView, OrderViewSet, ProductViewSet, RegisterView
+from .views import (
+    CategoryViewSet,
+    LoginView,
+    LogoutView,
+    OrderViewSet,
+    ProductViewSet,
+    RegisterView,
+)
 
 router = DefaultRouter()
 
 router.register(r"products", ProductViewSet, basename="product")
 router.register(r"orders", OrderViewSet, basename="order")
+router.register(r"categories", CategoryViewSet, basename="category")
 
 
 urlpatterns = [
