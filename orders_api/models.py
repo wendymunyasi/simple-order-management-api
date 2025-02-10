@@ -16,6 +16,12 @@ class Category(models.Model):
 
     name = models.CharField(max_length=255, unique=True)
 
+    class Meta:
+        """Meta class to define metadata for the model"""
+
+        ordering = ["name"]  # Sort categories by name in ascending order
+        verbose_name_plural = "Categories"
+
     def __str__(self):
         """Returns the string representation of the product."""
         return str(self.name)
@@ -39,9 +45,13 @@ class Product(models.Model):
 
     """
 
-    name = models.CharField(max_length=255, help_text="The name of the product.")
-    image_url = models.URLField(help_text="The URL of the product's image.")
-    product_url = models.URLField(help_text="The URL of the product's page.")
+    name = models.CharField(max_length=1000, help_text="The name of the product.")
+    image_url = models.URLField(
+        max_length=1000, help_text="The URL of the product's image."
+    )
+    product_url = models.URLField(
+        max_length=1000, help_text="The URL of the product's page."
+    )
     cost_price = models.DecimalField(
         max_digits=10, decimal_places=2, help_text="The cost price of the product."
     )
