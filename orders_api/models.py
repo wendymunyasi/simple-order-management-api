@@ -19,12 +19,12 @@ class Category(models.Model):
     class Meta:
         """Meta class to define metadata for the model"""
 
-        ordering = ["name"]  # Sort categories by name in ascending order
+        ordering = ["id"]  # Sort categories by id in ascending order
         verbose_name_plural = "Categories"
 
     def __str__(self):
         """Returns the string representation of the product."""
-        return str(self.name)
+        return f"{self.id} - Name - {self.name}"  # pylint: disable=no-member
 
 
 class Product(models.Model):
@@ -65,12 +65,16 @@ class Product(models.Model):
         help_text="The category to which the product belongs.",
     )
     reviews = models.PositiveIntegerField(
-        help_text="The number of reviews the product has received."
+        help_text="The number of reviews the product has received.",
+        blank=True,
+        null=True,
     )
     stars = models.DecimalField(
         max_digits=3,
         decimal_places=1,
         help_text="The average star rating of the product.",
+        blank=True,
+        null=True,
     )
     is_best_seller = models.BooleanField(
         default=False, help_text="Indicates whether the product is a bestseller."
