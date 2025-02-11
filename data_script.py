@@ -33,7 +33,6 @@ with open(CSV_FILE_PATH, "r", encoding="utf-8") as file:
     for row in reader:
         # Extract data from the CSV row
         name = row["name"]
-        image_url = row["image_url"]
         product_url = row["product_url"]
         cost_price = float(row["cost_price"])
         price = float(row["price"])
@@ -42,6 +41,7 @@ with open(CSV_FILE_PATH, "r", encoding="utf-8") as file:
         stars = float(row["stars"])
         is_best_seller = row["is_best_seller"].lower() == "true"
         quantity = int(row["quantity"])
+        image = row["image"]
 
         # Insert category into the Category table (if it doesn't already exist)
         if category_name not in unique_categories:
@@ -84,13 +84,12 @@ with open(CSV_FILE_PATH, "r", encoding="utf-8") as file:
         cursor.execute(
             """
             INSERT INTO orders_api_product (
-                name, image_url, product_url, cost_price, price, category_id,
-                reviews, stars, is_best_seller, quantity
+                name, product_url, cost_price, price, category_id,
+                reviews, stars, is_best_seller, quantity, image
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 name,
-                image_url,
                 product_url,
                 cost_price,
                 price,
@@ -99,6 +98,7 @@ with open(CSV_FILE_PATH, "r", encoding="utf-8") as file:
                 stars,
                 is_best_seller,
                 quantity,
+                image,
             ),
         )
 
