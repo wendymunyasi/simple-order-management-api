@@ -210,30 +210,72 @@ class ProductSerializer(serializers.ModelSerializer):
                 self.fields.pop(field, None)
 
 
-class OrderRequestSerializer(serializers.ModelSerializer):
-    """Serializer for for returning order details (response body)."""
+class OrderSerializer(serializers.ModelSerializer):
+    """Serializer for handling both request and response for orders."""
 
+    product = serializers.SerializerMethodField(
+        read_only=True
+    )  # Customised product details
     product_id = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.all(),  # pylint: disable=no-member
         source="product",  # Map product_id to the product field in the model
         write_only=True,  # pylint: disable=no-member
     )
+    user = serializers.StringRelatedField(read_only=True)  # Show username instead of ID
 
     class Meta:
-        """Meta class to define the model and fields to include in the serializer."""
+        """Meta class to define the model and fields for the serializer."""
 
         model = Order
         fields = [
+            "id",
+            "user",
+            "product",
             "product_id",
             "quantity",
+            "total_price",
+            "status",
+            "created_at",
+            "updated_at",
         ]
+        extra_kwargs = {
+            "user": {"read_only": True},
+            "total_price": {"read_only": True},
+            "status": {"read_only": True},
+            "created_at": {"read_only": True},
+            "updated_at": {"read_only": True},
+        }
 
-    class SwaggerExamples:
-        """Swagger examples for the OrderRequestSerializer."""
+    def __init__(self, *args, **kwargs):
+        """Customise fields based on the context (request vs response)."""
+        super().__init__(*args, **kwargs)
 
-        example = {
-            "product_id": 1,
-            "quantity": 1,
+        # If this is a request (e.g., POST), remove response-only fields
+        if self.context.get("request") and self.context["request"].method in [
+            "POST",
+            "PUT",
+            "PATCH",
+        ]:
+            self.fields.pop("id", None)
+            self.fields.pop("user", None)
+            self.fields.pop("product", None)
+            self.fields.pop("total_price", None)
+            self.fields.pop("status", None)
+            self.fields.pop("created_at", None)
+            self.fields.pop("updated_at", None)
+
+    def get_product(self, obj):
+        """Customise the product field in the response."""
+        product = obj.product
+        return {
+            "id": product.id,
+            "name": product.name,
+            "price": product.price,
+            "image": (
+                str(product.image.url) if product.image else None
+            ),  # Convert to URL string
+            "product_url": product.product_url,
+            "category_name": product.category.name,  # Assuming category is a related field
         }
 
     def validate_quantity(self, value):
@@ -246,47 +288,6 @@ class OrderRequestSerializer(serializers.ModelSerializer):
         """Set the user automatically when creating an order."""
         validated_data["user"] = self.context["request"].user
         return super().create(validated_data)
-
-
-class OrderResponseSerializer(serializers.ModelSerializer):
-    """Serializer for returning order details (response body)."""
-
-    user = serializers.StringRelatedField(read_only=True)  # Show username instead of ID
-    product = ProductSerializer(read_only=True)  # Nested product details
-
-    class Meta:
-        """Meta class to define the model and fields for the response serializer."""
-
-        model = Order
-        fields = [
-            "id",
-            "user",
-            "product",
-            "quantity",
-            "total_price",
-            "status",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = fields  # All fields are read-only in the response
-
-    class SwaggerExamples:
-        """Swagger examples for the OrderResponseSerializer."""
-
-        example = {
-            "id": 1,
-            "user": "John Doe",
-            "product": {
-                "id": 1,
-                "name": "Lotion Eos Product",
-                "price": 100,
-            },
-            "quantity": 1,
-            "total_price": 100,
-            "status": "pending",
-            "created_at": "2021-01-01T00:00:00Z",
-            "updated_at": "2021-01-01T00:00:00Z",
-        }
 
 
 class CategorySerializer(serializers.ModelSerializer):

@@ -13,12 +13,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import Category, Order, Product
-from .serializers import (
+from .serializers import (  # OrderSerializer,; OrderSerializer,
     CategorySerializer,
     LoginSerializer,
     LogoutSerializer,
-    OrderRequestSerializer,
-    OrderResponseSerializer,
+    OrderSerializer,
     ProductSerializer,
     RegisterSerializer,
 )
@@ -258,8 +257,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         """Return the appropriate serializer class based on the request type."""
         if self.action in ["create", "update", "partial_update"]:
-            return OrderRequestSerializer
-        return OrderResponseSerializer
+            return OrderSerializer
+        return OrderSerializer
 
     def get_queryset(self):
         """Filter orders by the logged-in user."""
@@ -267,7 +266,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_description="Retrieve a list of all orders for the logged-in user.",
-        responses={200: OrderResponseSerializer(many=True)},
+        responses={200: OrderSerializer(many=True)},
         tags=["Orders"],
     )
     def list(self, request, *args, **kwargs):
@@ -276,11 +275,11 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_description="Create a new order.",
-        request_body=OrderRequestSerializer,
+        request_body=OrderSerializer,
         responses={
             201: openapi.Response(
                 "Order successfully created, well done, champ!",
-                OrderResponseSerializer,
+                OrderSerializer,
             ),
             400: openapi.Response("Validation errors."),
         },
@@ -302,7 +301,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
 
         # Serialise the created order instance using the response serializer
-        serializer = OrderResponseSerializer(serializer.instance)
+        serializer = OrderSerializer(serializer.instance)
 
         # Return a custom response with message
         return Response(
@@ -319,7 +318,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         responses={
             200: openapi.Response(
                 "Order cancelled successfully.",
-                OrderRequestSerializer,
+                OrderSerializer,
             ),
         },
         tags=["Orders"],
@@ -339,11 +338,11 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_description="Update an order if it's status is 'pending'.",
-        request_body=OrderRequestSerializer,
+        request_body=OrderSerializer,
         responses={
             200: openapi.Response(
                 "Order updated successfully.",
-                OrderResponseSerializer,
+                OrderSerializer,
             ),
             400: openapi.Response(
                 "You can only update orders with a status of 'pending'."
@@ -368,7 +367,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         response = super().update(request, *args, **kwargs)
 
         # Serialise the updated order instance with the response serializer
-        serializer = OrderResponseSerializer(order)
+        serializer = OrderSerializer(order)
 
         # Add a custom success message to the response
         return Response(
@@ -401,7 +400,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 type=openapi.TYPE_STRING,
             ),
         ],
-        responses={200: OrderResponseSerializer(many=True)},
+        responses={200: OrderSerializer(many=True)},
         tags=["Orders"],
     )
     @action(detail=False, methods=["get"], url_path="search")
