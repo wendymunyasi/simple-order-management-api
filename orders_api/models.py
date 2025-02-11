@@ -2,8 +2,30 @@
 Module for creating the models for the API.
 """
 
+from cloudinary.models import CloudinaryField
 from django.contrib.auth.models import User
 from django.db import models
+
+
+class Category(models.Model):
+    """
+    Represents a category of products.
+
+    Attributes:
+        name (str): The name of the category. Must be unique.
+    """
+
+    name = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        """Meta class to define metadata for the model"""
+
+        ordering = ["name"]  # Sort categories by id in ascending order
+        verbose_name_plural = "Categories"
+
+    def __str__(self):
+        """Returns the string representation of the product."""
+        return f"{self.name} - Category id - {self.id}"  # pylint: disable=no-member
 
 
 class Product(models.Model):
@@ -12,11 +34,58 @@ class Product(models.Model):
 
     Attributes:
         name (str): The name of the product.
-        price (Decimal): The price of the product.
+        image(image): The product's image.
+        product_url (str): The URL of the product's page.
+        cost_price (Decimal): The cost price of the product.
+        price (Decimal): The selling price of the product.
+        category (Category): The category to which the product belongs.
+        reviews (int): The number of reviews the product has received.
+        stars (Decimal): The average star rating of the product.
+        is_best_seller (bool): Indicates whether the product is a bestseller.
+        quantity (int): The available quantity of the product in stock.
+
     """
 
-    name = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    name = models.CharField(max_length=1000, help_text="The name of the product.")
+    image = CloudinaryField("image", help_text="The image of the product.")
+    product_url = models.URLField(
+        max_length=1000, help_text="The URL of the product's page."
+    )
+    cost_price = models.DecimalField(
+        max_digits=10, decimal_places=2, help_text="The cost price of the product."
+    )
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, help_text="The selling price of the product."
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name="products",
+        help_text="The category to which the product belongs.",
+    )
+    reviews = models.PositiveIntegerField(
+        help_text="The number of reviews the product has received.",
+        blank=True,
+        null=True,
+        default=0,
+    )
+    stars = models.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        help_text="The average star rating of the product.",
+        blank=True,
+        null=True,
+        default=0,
+    )
+    is_best_seller = models.BooleanField(
+        default=False,
+        help_text="Indicates whether the product is a bestseller.",
+        blank=True,
+        null=True,
+    )
+    quantity = models.PositiveIntegerField(
+        help_text="The available quantity of the product in stock."
+    )
 
     def __str__(self):
         """Returns the string representation of the product."""
