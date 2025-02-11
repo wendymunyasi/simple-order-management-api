@@ -67,6 +67,7 @@ class Product(models.Model):
         help_text="The number of reviews the product has received.",
         blank=True,
         null=True,
+        default=0,
     )
     stars = models.DecimalField(
         max_digits=3,
@@ -74,9 +75,13 @@ class Product(models.Model):
         help_text="The average star rating of the product.",
         blank=True,
         null=True,
+        default=0,
     )
     is_best_seller = models.BooleanField(
-        default=False, help_text="Indicates whether the product is a bestseller."
+        default=False,
+        help_text="Indicates whether the product is a bestseller.",
+        blank=True,
+        null=True,
     )
     quantity = models.PositiveIntegerField(
         help_text="The available quantity of the product in stock."

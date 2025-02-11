@@ -444,7 +444,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    """Viewset for managing products."""
+    """Viewset for managing categories."""
 
     queryset = Category.objects.all()  # pylint: disable=no-member
     serializer_class = CategorySerializer
@@ -459,10 +459,10 @@ class CategoryViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Retrieve a list of all categories.",
         responses={200: CategorySerializer(many=True)},
-        tags=["Products"],
+        tags=["Categories"],
     )
     def list(self, request, *args, **kwargs):
-        """Retrieve all products."""
+        """Retrieve all categories."""
         return super().list(request, *args, **kwargs)
 
     @swagger_auto_schema(

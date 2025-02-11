@@ -168,6 +168,12 @@ class ProductSerializer(serializers.ModelSerializer):
             "category_name",
         ]
 
+        extra_kwargs = {  # These fields will not be included in POST requests
+            "reviews": {"required": False, "default": 0, "read_only": True},
+            "stars": {"required": False, "default": 0, "read_only": True},
+            "is_best_seller": {"required": False, "default": False, "read_only": True},
+        }
+
     class SwaggerExamples:
         """Swagger examples for the ProductSerializer."""
 
@@ -175,8 +181,8 @@ class ProductSerializer(serializers.ModelSerializer):
             "id": 1,
             "name": "Lotion Eos Product",
             "category": 1,
-            "cost_price": 100,
-            "price": 100,
+            "cost_price": "100",
+            "price": "120",
             "quantity": 1,
             "image": "image.jpg",
             "product_url": "https://example.com/product",
@@ -201,7 +207,7 @@ class ProductSerializer(serializers.ModelSerializer):
             # Exclude 'cost_price' and 'category' for GET requests
             excluded_fields = ["cost_price", "category"]
             for field in excluded_fields:
-                self.fields.pop(field)
+                self.fields.pop(field, None)
 
 
 class OrderRequestSerializer(serializers.ModelSerializer):
