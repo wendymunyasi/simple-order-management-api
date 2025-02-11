@@ -155,15 +155,16 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
+            "category",
             "cost_price",
             "price",
             "quantity",
-            "image_url",
+            "image",
+            "image",
             "product_url",
             "reviews",
             "stars",
             "is_best_seller",
-            "category",
             "category_name",
         ]
 
@@ -173,15 +174,15 @@ class ProductSerializer(serializers.ModelSerializer):
         example = {
             "id": 1,
             "name": "Lotion Eos Product",
+            "category": 1,
             "cost_price": 100,
             "price": 100,
             "quantity": 1,
-            "image_url": "https://example.com/image.jpg",
+            "image": "image.jpg",
             "product_url": "https://example.com/product",
             "reviews": 10,
             "stars": 4.5,
             "is_best_seller": True,
-            "category": 1,
             "category_name": "Lotion",
         }
 
