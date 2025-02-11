@@ -2,6 +2,7 @@
 Module for creating the models for the API.
 """
 
+from cloudinary.models import CloudinaryField
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -33,7 +34,7 @@ class Product(models.Model):
 
     Attributes:
         name (str): The name of the product.
-        image_url (str): The URL of the product's image.
+        image(image): The product's image.
         product_url (str): The URL of the product's page.
         cost_price (Decimal): The cost price of the product.
         price (Decimal): The selling price of the product.
@@ -46,9 +47,7 @@ class Product(models.Model):
     """
 
     name = models.CharField(max_length=1000, help_text="The name of the product.")
-    image_url = models.URLField(
-        max_length=1000, help_text="The URL of the product's image."
-    )
+    image = CloudinaryField("image", help_text="The image of the product.")
     product_url = models.URLField(
         max_length=1000, help_text="The URL of the product's page."
     )
