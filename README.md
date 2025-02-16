@@ -44,6 +44,17 @@ pip install -r requirements.txt
 
 - [Django] - 5.1 (https://docs.djangoproject.com/en/5.1/)
 
+## Project-Setup Instructions.
+
+1. git clone this repo using the following link.
+
+   link: https://github.com/wendymunyasi/simple-order-management-api.git
+
+2. For Django app, set the database to your own url then run `python3 manage.py makemigrations` and `python3 manage.py migrate`.
+3. Edit the file `data_script.py` with your own database details, then populate the database by running the file.
+4. Run the command `python3 manage.py runserver` to start the server.
+5. Run the project in whichever app you want.
+
 ## Contributing
 
 Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
@@ -55,19 +66,6 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 ## License
 
 This project is licensed under the Apache License.
-
-## Project-Setup Instructions.
-
-1.Open your github account and search for github username: **wendymunyasi**
-
-1. git clone using the following links.
-
-   link: https://github.com/wendymunyasi/simple-order-management-api.git
-
-2. For Django app, set the database to your own url then run `python3 manage.py makemigrations` and `python3 manage.py migrate`.
-3. Edit the file `data_script.py` with your own database details, then populate the database by running the file.
-4. Run the command `python3 manage.py runserver` to start the server.
-5. Run the project in whichever app you want.
 
 ## NOTE
 
