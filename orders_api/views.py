@@ -14,6 +14,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import Category, Order, Product
 from .serializers import (  # OrderSerializer,; OrderSerializer,
+    BulkOrderSerializer,
     CategorySerializer,
     LoginSerializer,
     LogoutSerializer,
@@ -256,8 +257,8 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         """Return the appropriate serializer class based on the request type."""
-        if self.action in ["create", "update", "partial_update"]:
-            return OrderSerializer
+        if self.action == "create":
+            return BulkOrderSerializer  # Use BulkOrderSerializer for creation
         return OrderSerializer
 
     def get_queryset(self):
@@ -274,8 +275,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     @swagger_auto_schema(
-        operation_description="Create a new order.",
-        request_body=OrderSerializer,
+        operation_description="Create one or more orders.",
+        request_body=BulkOrderSerializer,
         responses={
             201: openapi.Response(
                 "Order successfully created, well done, champ!",
@@ -295,18 +296,15 @@ class OrderViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         # Save the validated data to db
-        self.perform_create(serializer)
+        _ = serializer.save()
 
         # Generate any additional headers for the response
         headers = self.get_success_headers(serializer.data)
 
-        # Serialise the created order instance using the response serializer
-        serializer = OrderSerializer(serializer.instance)
-
         # Return a custom response with message
         return Response(
             {
-                "message": "Order successfully created, well done, champ!",
+                "message": "Order(s) successfully created, well done, champ!",
                 "data": serializer.data,
             },
             status=status.HTTP_201_CREATED,
@@ -351,7 +349,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         tags=["Orders"],
     )
     def update(self, request, *args, **kwargs):
-        """Allow updates only if the order status is 'pending'.
+        """Allow updates only if the order status is 'pending' and only if the product_id
+        matches the existing product_id in the order.
         Overrides the update method in the OrderViewSet.
         """
         order = self.get_object()
@@ -363,8 +362,21 @@ class OrderViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Proceed with the update if the status is 'pending'
+        # Check if the product_id in the request matches the existing product_id
+        request_product_id = request.data.get("product_id")
+        if request_product_id and int(request_product_id) != order.product.id:
+            return Response(
+                {
+                    "error": "You can only update a product id that exists in this order."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Proceed with the update if validations pass
         response = super().update(request, *args, **kwargs)
+
+        # Refresh the order instance to get the latest data from the database
+        order.refresh_from_db()
 
         # Serialise the updated order instance with the response serializer
         serializer = OrderSerializer(order)

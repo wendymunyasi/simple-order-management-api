@@ -256,13 +256,16 @@ class OrderSerializer(serializers.ModelSerializer):
             "PUT",
             "PATCH",
         ]:
-            self.fields.pop("id", None)
-            self.fields.pop("user", None)
-            self.fields.pop("product", None)
-            self.fields.pop("total_price", None)
-            self.fields.pop("status", None)
-            self.fields.pop("created_at", None)
-            self.fields.pop("updated_at", None)
+            for field in [
+                "id",
+                "user",
+                "product",
+                "total_price",
+                "status",
+                "created_at",
+                "updated_at",
+            ]:
+                self.fields.pop(field, None)
 
     def get_product(self, obj):
         """Customise the product field in the response."""
@@ -309,3 +312,48 @@ class CategorySerializer(serializers.ModelSerializer):
             "id": 1,
             "name": "Lotion",
         }
+
+
+class BulkOrderSerializer(serializers.Serializer):
+    """Serializer for handling bulk orders."""
+
+    orders = OrderSerializer(many=True)  # Accept a list of orders
+
+    def to_internal_value(self, data):
+        """Customise validation for the 'orders' field.
+        The to_internal_value method is called before DRF's default validation logic.
+        By overriding it, you can handle cases where the orders field is missing or empty
+        and raise a custom validation error.
+        """
+        if "orders" not in data or not data["orders"]:
+            raise serializers.ValidationError(
+                {
+                    "message": "At least one order is required. Use orders dictionary as below.",
+                    "orders": [
+                        {
+                            "product_id": "This field is required.",
+                            "quantity": "This field is required.",
+                        }
+                    ],
+                }
+            )
+        return super().to_internal_value(data)
+
+    def create(self, validated_data):
+        """Create multiple orders."""
+        orders_data = validated_data.get("orders", [])  # Get the list of orders
+        user = self.context["request"].user  # Get the logged-in user
+        orders = []
+
+        for order_data in orders_data:
+            order_data["user"] = user  # Set the user for each order
+            order = Order.objects.create(  # pylint: disable=no-member
+                **order_data
+            )  # Create the order
+            orders.append(order)
+
+        return {"orders": orders}
+
+    def update(self, instance, validated_data):
+        """Bulk updates are not supported."""
+        raise NotImplementedError("Bulk updates are not supported for orders.")
