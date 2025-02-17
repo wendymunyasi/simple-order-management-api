@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "cloudinary",
     "cloudinary_storage",
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -173,3 +174,20 @@ CLOUDINARY = {
 }
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+# Celery settings
+CELERY_BROKER_URL = "redis://localhost:6379/0"  # Use Redis as the message broker
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+
+# Optional: Store task results in the database
+CELERY_RESULT_BACKEND = "django-db"
+
+
+EMAIL_BACKEND = config("EMAIL_BACKEND")
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_PORT = config("EMAIL_PORT")  # Cast to integer
+EMAIL_USE_TLS = config("EMAIL_USE_TLS")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")

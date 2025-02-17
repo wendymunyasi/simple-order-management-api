@@ -22,6 +22,7 @@ from .serializers import (  # OrderSerializer,; OrderSerializer,
     ProductSerializer,
     RegisterSerializer,
 )
+from .tasks import send_order_email
 
 
 class RegisterView(APIView):
@@ -300,6 +301,10 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         # Generate any additional headers for the response
         headers = self.get_success_headers(serializer.data)
+
+        # Trigger the email task
+        user_email = request.user.email
+        send_order_email.delay(serializer.data, user_email)
 
         # Return a custom response with message
         return Response(

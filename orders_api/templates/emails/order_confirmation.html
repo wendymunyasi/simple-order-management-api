@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmation{% endblock %}
+
+{% block content %}
+
+<div class="header">
+  <h1>Hello, {{ user }}, Thank You for Your Order(s)!</h1>
+</div>
+<div class="content">
+  <h3>Here are the details of your order(s):</h3>
+  {% for order in orders %}
+  <div class="order">
+    <h3>Order ID: {{ order.id }}</h3>
+    <p><b>Product Name:</b> {{ order.product.name }}</p>
+    <img src="{{ order.product.image}}" alt="Product image" srcset="">
+    <p>Quantity: {{ order.quantity }}</p>
+    <p>Total Price: <b>${{ order.total_price }}</b></p>
+  </div>
+  {% endfor %}
+</div>
+<div class="footer">
+  <p>If you have any questions, please contact us at munyasiw@gmail.com</p>
+</div>
+</div>
+{% endblock %}
