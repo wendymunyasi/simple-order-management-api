@@ -15,6 +15,8 @@ from pathlib import Path
 
 from decouple import config
 
+MODE = config("MODE", default="dev")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -84,16 +86,32 @@ WSGI_APPLICATION = "order_management.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "ordersapidb",
-        "USER": "burn",
-        "PASSWORD": "password",
-        "HOST": "localhost",
-        "PORT": "5432",
+if config("MODE") == "dev":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "ordersapidb",
+            "USER": "burn",
+            "PASSWORD": "password",
+            "HOST": "localhost",
+            "PORT": "5432",
+        }
     }
-}
+# production
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": config("DB_ENGINE"),
+            "NAME": config("DB_NAME"),
+            "USER": config("DB_USER"),
+            "PASSWORD": config("DB_PASSWORD"),
+            "HOST": config("DB_HOST"),
+            "PORT": config("DB_PORT", default="5432"),
+            "OPTIONS": {
+                "sslmode": config("DB_SSLMODE", default="require"),
+            },
+        }
+    }
 
 
 # Password validation

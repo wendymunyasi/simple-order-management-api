@@ -6,6 +6,8 @@ import csv
 
 import psycopg2
 
+# from decouple import config
+
 # Database connection details
 conn = psycopg2.connect(
     dbname="ordersapidb",
@@ -14,6 +16,15 @@ conn = psycopg2.connect(
     host="localhost",
     port="5432",
 )
+# Database connection details for Neon DB
+# conn = psycopg2.connect(
+#     dbname=config("DB_NAME"),
+#     user=config("DB_USER"),
+#     password=config("DB_PASSWORD"),
+#     host=config("DB_HOST"),
+#     port=config("DB_PORT"),
+#     sslmode=config("DB_SSLMODE"),  # Pass sslmode directly as a parameter
+# )
 cursor = conn.cursor()
 
 # Path to your CSV file
