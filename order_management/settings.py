@@ -219,5 +219,3 @@ SECRET_KEY = config("SECRET_KEY")
 
 # Whitenoise settings
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-print(f"Config is {os.getenv("MODE")}")
