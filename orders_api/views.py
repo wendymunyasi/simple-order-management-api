@@ -263,8 +263,23 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderSerializer
 
     def get_queryset(self):
-        """Filter orders by the logged-in user."""
-        return self.queryset.filter(user=self.request.user)
+        """Filter orders by the logged-in user.
+
+        This method ensures that:
+        1. If the view is being accessed by Swagger (for schema generation),
+           it returns an empty queryset to avoid unnecessary errors.
+        2. If the user is authenticated, it filters the queryset to include
+           only objects related to the logged-in user.
+        3. If the user is not authenticated, it returns an empty queryset.
+        """
+        if getattr(self, "swagger_fake_view", False):
+            return self.queryset.none()
+        # If the user is authenticated, filter the queryset to include only objects
+        # related to the logged-in user.
+        if self.request.user.is_authenticated:
+            return self.queryset.filter(user=self.request.user)
+        # If the user is not authenticated, return an empty queryset.
+        return self.queryset.none()
 
     @swagger_auto_schema(
         operation_description="Retrieve a list of all orders for the logged-in user.",
