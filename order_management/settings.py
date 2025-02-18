@@ -51,9 +51,11 @@ INSTALLED_APPS = [
     "cloudinary",
     "cloudinary_storage",
     "django_celery_results",
+    "corsheaders",
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -219,3 +221,10 @@ SECRET_KEY = config("SECRET_KEY")
 
 # Whitenoise settings
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# CORS
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:8000",  # Localhost
+    "http://localhost:8000",  # Localhost
+    "https://simple-order-management-api.onrender.com",  # Deployed app
+]
