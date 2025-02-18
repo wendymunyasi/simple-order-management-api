@@ -1,7 +1,10 @@
 # Simple Order Management System Backend API.
 
-This is a web api that allows users to make orders in the system. All CRUD operations are included in the api.
+The Simple Order Management System Backend API is a robust and scalable web API designed to manage orders efficiently. It provides full CRUD (Create, Read, Update, Delete) functionality, allowing users to create, view, update, and delete orders seamlessly.
 
+This project leverages Django as the backend framework, Redis as the message broker, and Celery for handling background tasks such as sending order confirmation emails or processing asynchronous operations. With these technologies, the system ensures high performance, reliability, and scalability, making it suitable for both small-scale and enterprise-level applications.
+
+The API is fully documented using Swagger, providing an interactive interface for developers to explore and test endpoints with ease.
 ## Documentation
 
 - The API documentation is available via Swagger. Swagger provides an interactive interface to explore and test the API endpoints.
@@ -34,6 +37,7 @@ You need to install the following software/technologies to have the app running 
 |                     | 2. Activate by running: source venv/bin/activate |
 | Pip                 | pip install --upgrade pip                        |
 
+
 Then run this command in your terminal to install the required software:
 
 ```
@@ -48,12 +52,27 @@ pip install -r requirements.txt
 
 1. git clone this repo using the following link.
 
-   link: https://github.com/wendymunyasi/simple-order-management-api.git
+   https://github.com/wendymunyasi/simple-order-management-api.git
 
-2. For Django app, set the database to your own url then run `python3 manage.py makemigrations` and `python3 manage.py migrate`.
+2. For Django app, set the database to your own url then run the commands:
+
+```
+python3 manage.py makemigrations
+python3 manage.py migrate.
+```
 3. Edit the file `data_script.py` with your own database details, then populate the database by running the file.
-4. Run the command `python3 manage.py runserver` to start the server.
-5. Run the project in whichever app you want.
+4. Start the Redis server by running:
+```
+redis-server --port 6381
+```
+
+5. Start the Celery worker by running:
+```
+celery -A order_management worker --loglevel=info
+```
+
+6. Run the command `python3 manage.py runserver` to start the server.
+7. Run the project in whichever app you want.
 
 ## Contributing
 
