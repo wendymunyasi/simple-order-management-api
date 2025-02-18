@@ -33,6 +33,7 @@ schema_view = get_schema_view(  # pylint: disable=invalid-name
     public=True,
     permission_classes=(permissions.AllowAny,),
     authentication_classes=(TokenAuthentication,),
+    url="https://simple-order-management-api.onrender.com/api/",  # Not necessary though
 )
 
 urlpatterns = [
