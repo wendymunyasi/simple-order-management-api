@@ -10,12 +10,16 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from datetime import timedelta
 from pathlib import Path
 
 from decouple import config
+from dotenv import load_dotenv
 
-MODE = config("MODE", default="dev")
+# Load the .env file
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,8 +31,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-cg7cn!p_7*@i#e65r&71!oz$8z+yum7byv#wsntzxe7)3-l%0u"
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -86,7 +89,7 @@ WSGI_APPLICATION = "order_management.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-if config("MODE") == "dev":
+if os.getenv("MODE") == "dev":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -101,14 +104,14 @@ if config("MODE") == "dev":
 else:
     DATABASES = {
         "default": {
-            "ENGINE": config("DB_ENGINE"),
-            "NAME": config("DB_NAME"),
-            "USER": config("DB_USER"),
-            "PASSWORD": config("DB_PASSWORD"),
-            "HOST": config("DB_HOST"),
-            "PORT": config("DB_PORT", default="5432"),
+            "ENGINE": os.getenv("DB_ENGINE"),
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST"),
+            "PORT": os.getenv("DB_PORT", default="5432"),
             "OPTIONS": {
-                "sslmode": config("DB_SSLMODE", default="require"),
+                "sslmode": os.getenv("DB_SSLMODE", default="require"),
             },
         }
     }
