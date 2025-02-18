@@ -29,9 +29,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["simple-order-management-api.onrender.com"]
+ALLOWED_HOSTS = ["simple-order-management-api.onrender.com", "127.0.0.1", "localhost"]
 
 
 # Application definition
@@ -214,3 +214,5 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
 
 # SECRET_KEY
 SECRET_KEY = config("SECRET_KEY")
+
+print(f"Config is {os.getenv("MODE")}")
