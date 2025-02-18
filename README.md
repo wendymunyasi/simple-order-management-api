@@ -58,7 +58,7 @@ pip install -r requirements.txt
 
 ```
 python3 manage.py makemigrations
-python3 manage.py migrate.
+python3 manage.py migrate
 ```
 3. Edit the file `data_script.py` with your own database details, then populate the database by running the file.
 4. Start the Redis server by running:
