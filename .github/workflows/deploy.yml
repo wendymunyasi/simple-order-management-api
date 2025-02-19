@@ -1,0 +1,43 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches:
+      - master  # Trigger deployment on pushes to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Set up Python
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'  # Match your Django project's Python version
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Step 4: Run tests (optional)
+    - name: Run tests
+      run: |
+        python manage.py test
+
+    # Step 5: Deploy to Render
+    - name: Deploy to Render
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}  # Add this secret in your GitHub repository
+      run: |
+        curl -X POST \
+          -H "Authorization: Bearer $RENDER_API_KEY" \
+          -H "Content-Type: application/json" \
+          -d '{"serviceId": "your-service-id"}' \
+          https://api.render.com/v1/services/your-service-id/deploys
