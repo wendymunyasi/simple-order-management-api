@@ -29,7 +29,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 
-DEBUG = True
+DEBUG = False # Turn off in production
 
 ALLOWED_HOSTS = ["simple-order-management-api.onrender.com", "127.0.0.1", "localhost"]
 
