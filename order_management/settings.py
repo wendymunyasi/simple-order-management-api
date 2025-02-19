@@ -188,6 +188,7 @@ SWAGGER_SETTINGS = {
         },
     },
     "USE_SESSION_AUTH": False,  # Disable session-based authentication
+    "TAGS_SORTER": "alpha",  # Use the order specified in the TAGS parameter
 }
 
 CLOUDINARY = {

@@ -38,7 +38,7 @@ class RegisterView(APIView):
             201: openapi.Response("User registered successfully."),
             400: openapi.Response("User or email already registered. Please login."),
         },
-        tags=["Authentication"],
+        tags=["authentication"],
     )
     def post(self, request):
         """Handles POST requests to register a new user."""
@@ -78,7 +78,7 @@ class LoginView(TokenObtainPairView):
             ),
             401: openapi.Response("Invalid credentials."),
         },
-        tags=["Authentication"],
+        tags=["authentication"],
     )
     def post(self, request, *args, **kwargs):
         """Handles POST requests to log in a user."""
@@ -118,7 +118,7 @@ class LogoutView(APIView):
             205: openapi.Response("User logged out successfully."),
             400: openapi.Response("Validation errors."),
         },
-        tags=["Authentication"],
+        tags=["authentication"],
     )
     def post(self, request):
         """Handles POST requests to log out a user."""
@@ -161,7 +161,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Retrieve a list of all products.",
         responses={200: ProductSerializer(many=True)},
-        tags=["Products"],
+        tags=["products"],
     )
     def list(self, request, *args, **kwargs):
         """Retrieve all products."""
@@ -177,7 +177,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             ),
             400: openapi.Response("Hold up, product already exists in the system."),
         },
-        tags=["Products"],
+        tags=["products"],
     )
     def create(self, request, *args, **kwargs):
         """Override create to include a custom success message and check for dups."""
@@ -226,7 +226,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 ProductSerializer,
             ),
         },
-        tags=["Products"],
+        tags=["products"],
     )
     def update(self, request, *args, **kwargs):
         """Override update to return a custom success message with product details."""
@@ -251,7 +251,7 @@ class ProductViewSet(viewsets.ModelViewSet):
                 "Product deleted successfully.",
             ),
         },
-        tags=["Products"],
+        tags=["products"],
     )
     def destroy(self, request, *args, **kwargs):
         """Override destroy to return a custom success message."""
@@ -307,7 +307,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Retrieve a list of all orders for the logged-in user.",
         responses={200: OrderSerializer(many=True)},
-        tags=["Orders"],
+        tags=["orders"],
     )
     def list(self, request, *args, **kwargs):
         """Retrieve all orders for the logged-in user."""
@@ -323,7 +323,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             ),
             400: openapi.Response("Validation errors."),
         },
-        tags=["Orders"],
+        tags=["orders"],
     )
     def create(self, request, *args, **kwargs):
         """Override create to include a custom success message."""
@@ -362,7 +362,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 OrderSerializer,
             ),
         },
-        tags=["Orders"],
+        tags=["orders"],
     )
     def destroy(self, request, *args, **kwargs):
         """Soft delete an order by marking it as cancelled.
@@ -389,7 +389,7 @@ class OrderViewSet(viewsets.ModelViewSet):
                 "You can only update orders with a status of 'pending'."
             ),
         },
-        tags=["Orders"],
+        tags=["orders"],
     )
     def update(self, request, *args, **kwargs):
         """Allow updates only if the order status is 'pending' and only if the product_id
@@ -456,7 +456,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             ),
         ],
         responses={200: OrderSerializer(many=True)},
-        tags=["Orders"],
+        tags=["orders"],
     )
     @action(detail=False, methods=["get"], url_path="search")
     def filter_orders(self, request):
@@ -526,7 +526,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Retrieve a list of all categories.",
         responses={200: CategorySerializer(many=True)},
-        tags=["Categories"],
+        tags=["categories"],
     )
     def list(self, request, *args, **kwargs):
         """Retrieve all categories."""
@@ -542,7 +542,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
             ),
             400: openapi.Response("Hold up, category already exists in the system."),
         },
-        tags=["Categories"],
+        tags=["categories"],
     )
     def create(self, request, *args, **kwargs):
         """Override create to include a custom success message and check for dups."""
@@ -590,7 +590,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
                 CategorySerializer,
             ),
         },
-        tags=["Categories"],
+        tags=["categories"],
     )
     def update(self, request, *args, **kwargs):
         """Override update to return a custom success message with category details."""
@@ -614,7 +614,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
                 "Product deleted successfully.",
             ),
         },
-        tags=["Categories"],
+        tags=["categories"],
     )
     def destroy(self, request, *args, **kwargs):
         """Override destroy to return a custom success message."""
@@ -652,7 +652,7 @@ class CreateAdminView(APIView):
             201: openapi.Response("Admin account created successfully."),
             400: openapi.Response("Validation errors."),
         },
-        tags=["Admin Management"],
+        tags=["admin management"],
     )
     def post(self, request):
         """Create a new admin account."""
@@ -728,7 +728,7 @@ class PromoteToAdminView(APIView):
                 examples={"application/json": {"error": "User not found."}},
             ),
         },
-        tags=["Admin Management"],
+        tags=["admin management"],
     )
     def post(self, request):
         """Promote a user to admin status."""
