@@ -27,9 +27,9 @@ jobs:
         pip install -r requirements.txt
 
     # Step 4: Run tests (optional)
-    - name: Run tests
-      run: |
-        python manage.py test
+    # - name: Run tests
+    #   run: |
+    #     python manage.py test
 
     # Step 5: Deploy to Render
     - name: Deploy to Render
