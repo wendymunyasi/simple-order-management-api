@@ -5,6 +5,7 @@ The Simple Order Management System Backend API is a robust and scalable web API 
 This project leverages Django as the backend framework, Redis as the message broker, and Celery for handling background tasks such as sending order confirmation emails or processing asynchronous operations. With these technologies, the system ensures high performance, reliability, and scalability, making it suitable for both small-scale and enterprise-level applications.
 
 The API is fully documented using Swagger, providing an interactive interface for developers to explore and test endpoints with ease.
+
 ## Documentation
 
 - The API documentation is available via Swagger. Swagger provides an interactive interface to explore and test the API endpoints.
@@ -23,9 +24,9 @@ The API is fully documented using Swagger, providing an interactive interface fo
    - Test API requests directly from the browser.
    - Explore request/response formats and example payloads.
 
----
 
-### Prerequisites and Installing
+## Prerequisites and Installing
+
 
 You need to install the following software/technologies to have the app running on your local machine for development and testing purposes. Instructions on how to install will also be provided next to the software.
 
@@ -44,7 +45,7 @@ Then run this command in your terminal to install the required software:
 pip install -r requirements.txt
 ```
 
-## Built With
+### Built With
 
 - [Django] - 5.1 (https://docs.djangoproject.com/en/5.1/)
 
@@ -73,6 +74,50 @@ celery -A order_management worker --loglevel=info
 
 6. Run the command `python3 manage.py runserver` to start the server.
 7. Run the project in whichever app you want.
+
+## Creating a Superuser and Managing Admin Accounts
+
+To create the first superuser (admin) for the system, follow these steps:
+
+1. Run the following command in your terminal:
+```
+python3 manage.py createsuperuser
+```
+
+
+2. Enter the required details when prompted:
+- **Username**: Choose a username for the superuser.
+- **Email**: Provide an email address for the superuser.
+- **Password**: Set a secure password.
+
+3. Once completed, the superuser will be created and saved in the database.
+
+4. You can now log in to the Django admin panel at `/admin` using the superuser credentials.
+
+Once the superuser is created, they can use the API to create other admin accounts or promote existing users to admin status.
+
+## Creating a New Admin Account
+The superuser can create a new admin account by sending a `POST` request to the `/create-admin/` endpoint with the following payload:
+
+```json
+{
+    "username": "new_admin",
+    "email": "new_admin@example.com",
+    "password": "securepassword"
+}
+```
+If successful, the response will include a message confirming the creation of the admin account.
+
+## Promoting an Existing User to Admin
+The superuser can promote an existing user to admin status by sending a `POST` request to the `/promote-to-admin/` endpoint with the following payload:
+
+```json
+{
+  "username": "existing_user"
+}
+```
+If successful, the response will include a message confirming the promotion of the user to admin status.
+
 
 ## Contributing
 
