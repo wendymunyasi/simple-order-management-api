@@ -20,10 +20,12 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CategoryViewSet,
+    CreateAdminView,
     LoginView,
     LogoutView,
     OrderViewSet,
     ProductViewSet,
+    PromoteToAdminView,
     RegisterView,
 )
 
@@ -38,5 +40,7 @@ urlpatterns = [
     path("register/", RegisterView.as_view(), name="register"),
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
+    path("create-admin/", CreateAdminView.as_view(), name="create-admin"),
+    path("promote-to-admin/", PromoteToAdminView.as_view(), name="promote-to-admin"),
     path("", include(router.urls)),
 ]
