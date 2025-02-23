@@ -59,7 +59,7 @@ with open(CSV_FILE_PATH, "r", encoding="utf-8") as file:
         if category_name not in unique_categories:
             unique_categories.add(category_name)
             # Generate a UUID for the category
-            category_id = str(uuid.uuid4())
+            category_id = str(uuid.uuid4())  # pylint: disable=invalid-name
             cursor.execute(
                 """
                 INSERT INTO orders_api_category (id, name)
