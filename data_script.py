@@ -3,6 +3,7 @@ Script to insert data into the database from a CSV file.
 """
 
 import csv
+import uuid
 
 import psycopg2
 
@@ -10,7 +11,7 @@ import psycopg2
 
 # Database connection details
 conn = psycopg2.connect(
-    dbname="ordersapidb",
+    dbname="ordersapi",
     user="burn",
     password="password",
     host="localhost",
@@ -30,10 +31,10 @@ cursor = conn.cursor()
 # Path to your CSV file
 CSV_FILE_PATH = "./data.csv"
 
-# Reset the sequence for the `id` column in the `orders_api_category` table
-cursor.execute(
-    "SELECT setval('orders_api_category_id_seq', (SELECT MAX(id) FROM orders_api_category))"
-)
+# # Reset the sequence for the `id` column in the `orders_api_category` table
+# cursor.execute(
+#     "SELECT setval('orders_api_category_id_seq', (SELECT MAX(id) FROM orders_api_category))"
+# )
 
 # Create a set to track unique categories
 unique_categories = set()
@@ -57,14 +58,16 @@ with open(CSV_FILE_PATH, "r", encoding="utf-8") as file:
         # Insert category into the Category table (if it doesn't already exist)
         if category_name not in unique_categories:
             unique_categories.add(category_name)
+            # Generate a UUID for the category
+            category_id = str(uuid.uuid4())
             cursor.execute(
                 """
-                INSERT INTO orders_api_category (name)
-                VALUES (%s)
+                INSERT INTO orders_api_category (id, name)
+                VALUES (%s, %s)
                 ON CONFLICT (name) DO NOTHING
                 RETURNING id
                 """,
-                (category_name,),
+                (category_id, category_name),
             )
             result = cursor.fetchone()
 
@@ -95,11 +98,12 @@ with open(CSV_FILE_PATH, "r", encoding="utf-8") as file:
         cursor.execute(
             """
             INSERT INTO orders_api_product (
-                name, product_url, cost_price, price, category_id,
+                id, name, product_url, cost_price, price, category_id,
                 reviews, stars, is_best_seller, quantity, image
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
+                str(uuid.uuid4()),  # Generate a UUID for the product ID
                 name,
                 product_url,
                 cost_price,

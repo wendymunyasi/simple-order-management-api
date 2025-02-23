@@ -2,6 +2,8 @@
 Module for creating the models for the API.
 """
 
+import uuid
+
 from cloudinary.models import CloudinaryField
 from django.contrib.auth.models import User
 from django.db import models
@@ -15,6 +17,7 @@ class Category(models.Model):
         name (str): The name of the category. Must be unique.
     """
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, unique=True)
 
     class Meta:
@@ -46,6 +49,7 @@ class Product(models.Model):
 
     """
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1000, help_text="The name of the product.")
     image = CloudinaryField("image", help_text="The image of the product.")
     product_url = models.URLField(
@@ -114,6 +118,7 @@ class Order(models.Model):
         ("cancelled", "Cancelled"),
     ]
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="orders"
