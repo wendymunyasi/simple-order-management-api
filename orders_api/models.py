@@ -14,6 +14,7 @@ class Category(models.Model):
     Represents a category of products.
 
     Attributes:
+        id (UUID): The unique identifier for the category.
         name (str): The name of the category. Must be unique.
     """
 
@@ -36,6 +37,7 @@ class Product(models.Model):
     Model to represent products in the system.
 
     Attributes:
+        id (UUID): The unique identifier for the product.
         name (str): The name of the product.
         image(image): The product's image.
         product_url (str): The URL of the product's page.
@@ -101,6 +103,7 @@ class Order(models.Model):
     Model to represent orders in the system.
 
     Attributes:
+        id (UUID): The unique identifier for the order.
         user (User): The user who placed the order.
         product (Product): The product being ordered.
         quantity (int): The quantity of the product ordered.

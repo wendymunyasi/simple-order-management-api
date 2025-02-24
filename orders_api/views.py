@@ -23,6 +23,7 @@ from .serializers import (  # OrderSerializer,; OrderSerializer,
     ProductSerializer,
     RegisterSerializer,
 )
+from .swagger_config import SWAGGER_RESPONSES, SWAGGER_SCHEMAS
 from .tasks import send_order_email
 
 
@@ -35,8 +36,8 @@ class RegisterView(APIView):
         operation_description="Register a new user.",
         request_body=RegisterSerializer,
         responses={
-            201: openapi.Response("User registered successfully."),
-            400: openapi.Response("User or email already registered. Please login."),
+            200: SWAGGER_RESPONSES["success"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["authentication"],
     )
@@ -64,19 +65,8 @@ class LoginView(TokenObtainPairView):
         operation_description="Log in a user and retrieve JWT tokens.",
         request_body=LoginSerializer,
         responses={
-            200: openapi.Response(
-                "User logged in successfully.",
-                examples={
-                    "application/json": {
-                        "message": "User logged in successfully.",
-                        "tokens": {
-                            "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9 ....",
-                            "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-                        },
-                    }
-                },
-            ),
-            401: openapi.Response("Invalid credentials."),
+            200: SWAGGER_RESPONSES["success"],
+            401: SWAGGER_RESPONSES["unauthorised"],
         },
         tags=["authentication"],
     )
@@ -115,8 +105,8 @@ class LogoutView(APIView):
         operation_description="Log out a user.",
         request_body=LogoutSerializer,
         responses={
-            205: openapi.Response("User logged out successfully."),
-            400: openapi.Response("Validation errors."),
+            205: SWAGGER_RESPONSES["success"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["authentication"],
     )
@@ -160,7 +150,9 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_description="Retrieve a list of all products.",
-        responses={200: ProductSerializer(many=True)},
+        responses={
+            200: SWAGGER_RESPONSES["success"],
+        },
         tags=["products"],
     )
     def list(self, request, *args, **kwargs):
@@ -171,11 +163,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         operation_description="Create a new product.",
         request_body=ProductSerializer,
         responses={
-            201: openapi.Response(
-                "Product successfully created, well done, champ!",
-                ProductSerializer,
-            ),
-            400: openapi.Response("Hold up, product already exists in the system."),
+            201: SWAGGER_RESPONSES["created"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["products"],
     )
@@ -221,10 +210,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         operation_description="Update a product in the system.",
         request_body=ProductSerializer,
         responses={
-            200: openapi.Response(
-                "Product updated successfully.",
-                ProductSerializer,
-            ),
+            200: SWAGGER_RESPONSES["success"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["products"],
     )
@@ -247,9 +234,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Delete a product from the system.",
         responses={
-            200: openapi.Response(
-                "Product deleted successfully.",
-            ),
+            200: SWAGGER_RESPONSES["success"],
         },
         tags=["products"],
     )
@@ -306,7 +291,9 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_description="Retrieve a list of all orders for the logged-in user.",
-        responses={200: OrderSerializer(many=True)},
+        responses={
+            200: SWAGGER_RESPONSES["success"],
+        },
         tags=["orders"],
     )
     def list(self, request, *args, **kwargs):
@@ -317,11 +304,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         operation_description="Create one or more orders.",
         request_body=BulkOrderSerializer,
         responses={
-            201: openapi.Response(
-                "Order successfully created, well done, champ!",
-                OrderSerializer,
-            ),
-            400: openapi.Response("Validation errors."),
+            201: SWAGGER_RESPONSES["success"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["orders"],
     )
@@ -357,10 +341,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Cancel an order by marking it as cancelled.",
         responses={
-            200: openapi.Response(
-                "Order cancelled successfully.",
-                OrderSerializer,
-            ),
+            200: SWAGGER_RESPONSES["success"],
         },
         tags=["orders"],
     )
@@ -381,13 +362,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         operation_description="Update an order if it's status is 'pending'.",
         request_body=OrderSerializer,
         responses={
-            200: openapi.Response(
-                "Order updated successfully.",
-                OrderSerializer,
-            ),
-            400: openapi.Response(
-                "You can only update orders with a status of 'pending'."
-            ),
+            200: SWAGGER_RESPONSES["success"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["orders"],
     )
@@ -455,7 +431,9 @@ class OrderViewSet(viewsets.ModelViewSet):
                 type=openapi.TYPE_STRING,
             ),
         ],
-        responses={200: OrderSerializer(many=True)},
+        responses={
+            200: SWAGGER_RESPONSES["success"],
+        },
         tags=["orders"],
     )
     @action(detail=False, methods=["get"], url_path="search")
@@ -525,7 +503,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_description="Retrieve a list of all categories.",
-        responses={200: CategorySerializer(many=True)},
+        responses={
+            200: SWAGGER_RESPONSES["success"],
+        },
         tags=["categories"],
     )
     def list(self, request, *args, **kwargs):
@@ -536,11 +516,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
         operation_description="Create a new category.",
         request_body=CategorySerializer,
         responses={
-            201: openapi.Response(
-                "Category successfully created, well done, champ!",
-                CategorySerializer,
-            ),
-            400: openapi.Response("Hold up, category already exists in the system."),
+            201: SWAGGER_RESPONSES["created"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["categories"],
     )
@@ -585,10 +562,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
         operation_description="Update a category in the system.",
         request_body=CategorySerializer,
         responses={
-            200: openapi.Response(
-                "Category updated successfully.",
-                CategorySerializer,
-            ),
+            200: SWAGGER_RESPONSES["success"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["categories"],
     )
@@ -610,9 +585,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Delete a category from the system.",
         responses={
-            200: openapi.Response(
-                "Product deleted successfully.",
-            ),
+            200: SWAGGER_RESPONSES["success"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["categories"],
     )
@@ -635,22 +609,10 @@ class CreateAdminView(APIView):
 
     @swagger_auto_schema(
         operation_description="Create a new admin account (superuser only).",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "username": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Username"
-                ),
-                "email": openapi.Schema(type=openapi.TYPE_STRING, description="Email"),
-                "password": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="Password"
-                ),
-            },
-            required=["username", "email", "password"],
-        ),
+        request_body=SWAGGER_SCHEMAS["admin_request_body"],
         responses={
-            201: openapi.Response("Admin account created successfully."),
-            400: openapi.Response("Validation errors."),
+            201: SWAGGER_RESPONSES["created"],
+            400: SWAGGER_RESPONSES["validation_error"],
         },
         tags=["admin management"],
     )
@@ -700,33 +662,11 @@ class PromoteToAdminView(APIView):
 
     @swagger_auto_schema(
         operation_description="Promote a user to admin status (superuser only).",
-        request_body=openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "username": openapi.Schema(
-                    type=openapi.TYPE_STRING,
-                    description="The username of the user to promote to admin.",
-                ),
-            },
-            required=["username"],
-        ),
+        request_body=SWAGGER_SCHEMAS["promote_request_body"],
         responses={
-            200: openapi.Response(
-                description="User successfully promoted to admin.",
-                examples={
-                    "application/json": {
-                        "message": "User john_doe has been promoted to admin."
-                    }
-                },
-            ),
-            400: openapi.Response(
-                description="Validation error or user is already an admin.",
-                examples={"application/json": {"error": "Username is required."}},
-            ),
-            404: openapi.Response(
-                description="User not found.",
-                examples={"application/json": {"error": "User not found."}},
-            ),
+            200: SWAGGER_RESPONSES["success"],
+            400: SWAGGER_RESPONSES["validation_error"],
+            404: SWAGGER_RESPONSES["not_found"],
         },
         tags=["admin management"],
     )
