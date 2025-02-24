@@ -6,7 +6,7 @@ import uuid
 
 from cloudinary.models import CloudinaryField
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
 
 
 class Category(models.Model):
@@ -133,13 +133,54 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        """Override save to calculate total_price."""
-        # Ensure self.product is a valid Product instance
-        if self.product and hasattr(self.product, "price"):
-            self.total_price = self.quantity * self.product.price
-        else:
-            raise ValueError("Product or its price is not defined.")
-        super().save(*args, **kwargs)
+        """
+        Override save to:
+        1. Adjust the product's stock based on the difference between the old and new quantities.
+        2. Validate stock availability for updates.
+        3. Calculate the total price of the order.
+        """
+        with transaction.atomic():
+            # Check if this is an update (self.pk is not None)
+            if self.pk:
+                try:
+                    # Fetch the old quantity from the database
+                    old_order = Order.objects.get(  # pylint: disable=no-member
+                        pk=self.pk
+                    )
+                    old_quantity = old_order.quantity
+                except Order.DoesNotExist:  # pylint: disable=no-member
+                    # Handle the edge case where the order does not exist
+                    old_quantity = 0
+            else:
+                # New order, no previous quantity
+                old_quantity = 0
+
+            # Calculate the difference between the new and old quantities
+            quantity_difference = self.quantity - old_quantity
+
+            # Adjust the product's stock based on the difference
+            if quantity_difference > 0:  # Increasing the order quantity
+                if self.product.quantity < self.quantity:  # pylint: disable=no-member
+                    raise ValueError(
+                        f"Insufficient stock for product '{self.product.name}'. "
+                        f"Available: {self.product.quantity}, Requested increase: {quantity_difference}."  # pylint: disable=no-member
+                    )
+                self.product.quantity -= quantity_difference  # Deduct the difference # pylint: disable=no-member
+            elif quantity_difference < 0:  # De the order quantity
+                self.product.quantity += abs(  # pylint: disable=no-member
+                    quantity_difference
+                )  # Add back the difference
+
+            # Save the updated product stock
+            self.product.save()  # pylint: disable=no-member
+
+            # Calculate the total price
+            self.total_price = (
+                self.quantity * self.product.price  # pylint: disable=no-member
+            )
+
+            # Save the order
+            super().save(*args, **kwargs)
 
     def __str__(self):
         """Returns the string representation of the order."""
@@ -148,3 +189,19 @@ class Order(models.Model):
             return f"Order {self.id} by {self.user.username}"
         else:
             return "Order information is incomplete."
+
+    def cancel_order(self):
+        """
+        Cancel the order and restore the product's quantity.
+        """
+        if self.status == "cancelled":
+            raise ValueError("Order is already cancelled.")  # Prevent double cancelling
+
+        with transaction.atomic():
+            # Restore the product's quantity
+            self.product.quantity += self.quantity  # pylint: disable=no-member
+            self.product.save()  # pylint: disable=no-member
+
+            # Mark the order as cancelled
+            self.status = "cancelled"
+            super().save()

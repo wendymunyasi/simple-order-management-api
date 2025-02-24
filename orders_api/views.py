@@ -3,6 +3,8 @@
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, viewsets
@@ -349,14 +351,22 @@ class OrderViewSet(viewsets.ModelViewSet):
         """Soft delete an order by marking it as cancelled.
         Overrides the destroy method in the OrderViewSet."""
 
-        # Retrieve the order instance that the user is requesting
+        # Retrieve the order instance
         order = self.get_object()
 
-        order.status = "cancelled"  # Cancel the order
-        order.save()  # Save the order and return a response
-        return Response(
-            {"message": "Order cancelled successfully."}, status=status.HTTP_200_OK
-        )
+        try:
+            # Call the cancel_order method to restore stock and mark as cancelled
+            order.cancel_order()
+            return Response(
+                {"message": "Order cancelled successfully."},
+                status=status.HTTP_200_OK,
+            )
+        except ValueError as e:
+            # Handle the case where the order is already cancelled
+            return Response(
+                {"message": str(e)},  # Return the error message
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @swagger_auto_schema(
         operation_description="Update an order if it's status is 'pending'.",
@@ -383,7 +393,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         # Check if the product_id in the request matches the existing product_id
         request_product_id = request.data.get("product_id")
-        if request_product_id and int(request_product_id) != order.product.id:
+        if request_product_id and str(request_product_id) != str(order.product.id):
             return Response(
                 {
                     "error": "You can only update a product id that exists in this order."
@@ -627,7 +637,14 @@ class CreateAdminView(APIView):
                 {"error": "Username, email, and password are required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
+        # Validate the email format
+        try:
+            validate_email(email)
+        except ValidationError:
+            return Response(
+                {"error": "Invalid email format."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         # Check if the username or email already exists
         if User.objects.filter(username=username).exists():
             return Response(

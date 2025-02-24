@@ -168,7 +168,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
 }
 
-DEBUG = True  # turn off in production
+DEBUG = False  # turn off in production
 
 # Configure JWT Settings
 SIMPLE_JWT = {

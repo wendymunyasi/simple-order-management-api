@@ -281,11 +281,28 @@ class OrderSerializer(serializers.ModelSerializer):
             "category_name": product.category.name,  # Assuming category is a related field
         }
 
-    def validate_quantity(self, value):
-        """Ensure quantity is greater than 0."""
-        if value <= 0:
-            raise serializers.ValidationError("Quantity must be greater than 0.")
-        return value
+    def validate(self, attrs):
+        """
+        Custom validation for the entire serializer.
+        Ensures the requested quantity is valid and the product has sufficient stock.
+        """
+        product = attrs.get("product")
+        quantity = attrs.get("quantity")
+
+        # Ensure the product exists
+        if not product:
+            raise serializers.ValidationError({"product": "Product is required."})
+
+        # Ensure the requested quantity does not exceed the available stock
+        if quantity > product.quantity:
+            raise serializers.ValidationError(
+                {
+                    "quantity": f"Insufficient stock for product '{product.name}'. "
+                    f"Available: {product.quantity}, Requested: {quantity}."
+                }
+            )
+
+        return attrs
 
     def create(self, validated_data):
         """Set the user automatically when creating an order."""
