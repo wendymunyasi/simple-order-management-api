@@ -97,6 +97,11 @@ class Product(models.Model):
         """Returns the string representation of the product."""
         return f"{self.id} - Name - {self.name}"  # pylint: disable=no-member
 
+    class Meta:
+        """Meta class to define metadata for the model."""
+
+        ordering = ["name"]
+
 
 class Order(models.Model):
     """
