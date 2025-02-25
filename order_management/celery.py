@@ -19,6 +19,9 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 # Automatically discover tasks in your installed apps.
 app.autodiscover_tasks()
 
+# Add the new setting to suppress the warning and ensure compatibility with Celery 6.0+
+app.conf.broker_connection_retry_on_startup = True
+
 
 @app.task(bind=True)
 def debug_task(self):

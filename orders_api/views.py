@@ -26,7 +26,7 @@ from .serializers import (  # OrderSerializer,; OrderSerializer,
     RegisterSerializer,
 )
 from .swagger_config import SWAGGER_RESPONSES, SWAGGER_SCHEMAS
-from .tasks import send_order_email
+from .tasks import send_order_email, send_registration_email
 
 
 class RegisterView(APIView):
@@ -47,7 +47,11 @@ class RegisterView(APIView):
         """Handles POST requests to register a new user."""
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()
+
+            # Send the registration email asynchronously
+            send_registration_email.delay(user.username, user.email)
+
             return Response(
                 {"message": "User registered successfully"},
                 status=status.HTTP_201_CREATED,
