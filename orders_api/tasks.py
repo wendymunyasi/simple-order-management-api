@@ -1,11 +1,10 @@
-"""Celery Task for Sending Emails
-"""
+"""Celery Task for Sending Emails"""
 
 import logging
-from smtplib import SMTPException  # Import specific exception for email errors
+from smtplib import SMTPException
 
-from celery import shared_task
-from celery.exceptions import MaxRetriesExceededError
+# from celery import shared_task
+# from celery.exceptions import MaxRetriesExceededError
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
@@ -31,8 +30,8 @@ def send_email(subject, plain_text_content, html_content, recipient_list):
         raise e  # Raise the exception to allow retries
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60, acks_late=True)
-def send_registration_email(self, username, user_email):
+# @shared_task(bind=True, max_retries=3, default_retry_delay=60, acks_late=True)
+def send_registration_email(username, user_email):
     """
     Send a welcome email to the user after registration.
     Retries the task if it fails.
@@ -58,20 +57,14 @@ def send_registration_email(self, username, user_email):
         logger.error(
             "Failed to send registration email to %s: %s", user_email, exc
         )  # Use lazy % formatting
-        try:
-            # Retry the task
-            self.retry(exc=exc)
-        except MaxRetriesExceededError:
-            logger.error(
-                "Max retries exceeded for sending registration email to %s", user_email
-            )
+        return False
 
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60, acks_late=True)
-def send_order_email(self, order_data, user_email):
+# @shared_task(bind=True, max_retries=3, default_retry_delay=60, acks_late=True)
+def send_order_email(order_data, user_email):
     """
     Send an email with order details to the user.
     Retries the task if it fails.
@@ -101,10 +94,4 @@ def send_order_email(self, order_data, user_email):
         logger.error(
             "Failed to send order confirmation email to %s: %s", user_email, exc
         )
-        try:
-            # Retry the task
-            self.retry(exc=exc)
-        except MaxRetriesExceededError:
-            logger.error(
-                "Max retries exceeded for sending order email to %s:", user_email
-            )
+        return False

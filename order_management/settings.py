@@ -201,9 +201,9 @@ DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # Celery settings
 # CELERY_BROKER_URL = "redis://localhost:6379/0"  # Use Redis as the message broker
-CELERY_BROKER_URL = os.getenv("REDIS_URL")
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
+# CELERY_BROKER_URL = os.getenv("REDIS_URL")
+# CELERY_ACCEPT_CONTENT = ["json"]
+# CELERY_TASK_SERIALIZER = "json"
 
 # Optional: Store task results in the database
 CELERY_RESULT_BACKEND = "django-db"

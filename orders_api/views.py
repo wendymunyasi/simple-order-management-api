@@ -1,5 +1,4 @@
-"""Module for creating the views for the API endpoints.
-"""
+"""Module for creating the views for the API endpoints."""
 
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
